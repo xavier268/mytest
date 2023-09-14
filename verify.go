@@ -9,11 +9,12 @@ import (
 )
 
 // max number of characters to display, before and after first discrepency detected.
+// adjusting this value has no effect on stored files, only on displayed messages.
 var DISPLAY_WINDOW = 160
 
 // Verify provided content against reference file.
 // If no reference file found, create it.
-// A .want extension and a _ prefix are added to the filename.
+// A .want extension and a _ prefix are added to the filename base name, and path is removed to force storage in local source folder.
 // If content differs from existing reference file, create a xxx.got file for further review and fail the test.
 func Verify(t *testing.T, content string, filename string) {
 
@@ -54,7 +55,7 @@ func Verify(t *testing.T, content string, filename string) {
 			}
 		}
 
-		// If we reach here, it means conet is matching ref, but both files are different.
+		// If we reach here, it means content is matching ref, but both files are different.
 		// There must be extra reference ? Let's show it.
 		i := len(content)
 		i1 := len(content) - DISPLAY_WINDOW
@@ -79,12 +80,14 @@ func Verify(t *testing.T, content string, filename string) {
 	}
 }
 
+// construct the reference file name
 func wantFile(filename string) string {
 	filename = filepath.Base(filename)
 	filename, _ = filepath.Abs("_" + filename)
 	return filename + ".want"
 }
 
+// construct the result (.got) file name if different from reference
 func gotFile(filename string) string {
 	filename = filepath.Base(filename)
 	filename, _ = filepath.Abs("_" + filename)
