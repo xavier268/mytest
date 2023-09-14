@@ -2,4 +2,4 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/xavier268/mytest)](https://goreportcard.com/report/github.com/xavier268/mytest)
 
 # mytest
-Go testing utilities
+Go testing utilities with a focus on table driven tests.
