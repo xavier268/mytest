@@ -1,3 +1,3 @@
 package mytest
 
-const VERSION = "0.1.5"
+const VERSION = "1.0.0"
