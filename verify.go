@@ -3,8 +3,10 @@ package mytest
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 )
 
@@ -14,17 +16,17 @@ var DISPLAY_WINDOW = 160
 
 // Verify provided content against reference file.
 // If no reference file found, create it.
-// A .want extension and a _ prefix are added to the filename base name, and path is removed to force storage in local source folder.
+// A .want extension and a _ prefix are added to the reference filename base name, and path is removed to force storage in local source folder.
 // If content differs from existing reference file, create a xxx.got file for further review and fail the test.
-func Verify(t *testing.T, content string, filename string) {
+func Verify(t *testing.T, content string, reference string) {
 
-	content = fmt.Sprintf("Test name : %s\nThis file : %s\n%s\n", t.Name(), filepath.Base(wantFile(filename)), content)
+	content = fmt.Sprintf("Test name : %s\nThis file : %s\n%s\n", t.Name(), filepath.Base(wantFile(reference)), content)
 
-	fmt.Println(GREEN+"Verifying test results against file : "+RESET, wantFile(filename))
-	check, err := os.ReadFile(wantFile(filename))
+	fmt.Println(GREEN+"Verifying test results against file : "+RESET, wantFile(reference))
+	check, err := os.ReadFile(wantFile(reference))
 	if err != nil {
 		fmt.Println(RED + "File not found, create it as a reference for future test. Make sure you manually review it !" + RESET)
-		os.WriteFile(wantFile(filename), []byte(content), 0644)
+		os.WriteFile(wantFile(reference), []byte(content), 0644)
 		return
 	}
 	sc := string(check)
@@ -49,8 +51,8 @@ func Verify(t *testing.T, content string, filename string) {
 				fmt.Printf("\n============================ want==============================\n%s%s%s%s\n",
 					sc[i1:i], RED, sc[i:i2], RESET)
 
-				_ = os.WriteFile(gotFile(filename), []byte(content), 0644)
-				fmt.Printf("\n%s*** FAILING *** Got file saved in : %s%s\n", RED, gotFile(filename), RESET)
+				_ = os.WriteFile(gotFile(reference), []byte(content), 0644)
+				fmt.Printf("\n%s*** FAILING *** Got file saved in : %s%s\n", RED, gotFile(reference), RESET)
 				t.Fatalf("Result differs from reference file in %s", t.Name())
 			}
 		}
@@ -73,11 +75,25 @@ func Verify(t *testing.T, content string, filename string) {
 		fmt.Printf("\n============================ want==============================\n%s%s%s%s\n",
 			sc[i1:i], RED, sc[i:i2], RESET)
 
-		_ = os.WriteFile(gotFile(filename), []byte(content), 0644)
-		fmt.Printf("\n%s*** FAILING *** Got file saved in : %s%s\n", RED, gotFile(filename), RESET)
-		t.Fatalf("Result differs from reference file in %s", wantFile(filename))
+		_ = os.WriteFile(gotFile(reference), []byte(content), 0644)
+		fmt.Printf("\n%s*** FAILING *** Got file saved in : %s%s\n", RED, gotFile(reference), RESET)
+		t.Fatalf("Result differs from reference file in %s", wantFile(reference))
 
 	}
+}
+
+// Apply Verify to the content of the specified file.
+// Not suitable for large files, because file will be loaded entirely in memory.
+func VerifyFile(t *testing.T, pathToFile string) {
+	f, err := os.Open(pathToFile)
+	if err != nil {
+		t.Fatalf("%sError accessing file %s %s: %v", RED, pathToFile, RESET, err)
+	}
+	defer f.Close()
+	bb, err := io.ReadAll(f)
+	patt := regexp.MustCompile("[^A-Za-z0-9]")
+	reference := patt.ReplaceAllString(pathToFile, ".")
+	Verify(t, string(bb), reference)
 }
 
 // construct the reference file name
