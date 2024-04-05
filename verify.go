@@ -20,7 +20,7 @@ var DISPLAY_WINDOW = 160
 // If content differs from existing reference file, create a xxx.got file for further review and fail the test.
 func Verify(t *testing.T, content string, reference string) {
 
-	content = fmt.Sprintf("Test name : %s\nThis file : %s\n%s\n", t.Name(), filepath.Base(wantFile(reference)), content)
+	content = fmt.Sprintf("Test name : %s\nReference : %s\n%s\n", t.Name(), filepath.Base(reference), content)
 
 	fmt.Println(GREEN+"Verifying test results against file : "+RESET, wantFile(reference))
 	check, err := os.ReadFile(wantFile(reference))
